@@ -30,7 +30,7 @@ async def setup(bot):
     @bot.tree.command(name="track", description="Track a player and get notified when they come online.")
     @app_commands.describe(playername="Minecraft username to track")
     async def track(interaction: discord.Interaction, playername: str):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
         userID = interaction.user.id
 
         if await getOnlineStatus(donutApiKey, playername):
@@ -58,7 +58,7 @@ async def setup(bot):
     @app_commands.describe(playername="Minecraft username to stop tracking")
     async def untrack(interaction: discord.Interaction, playername: str):
         userID = interaction.user.id
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         if playername not in trackedPlayers:
             await interaction.followup.send("⚠️ This player is not being tracked.")

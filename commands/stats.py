@@ -13,7 +13,7 @@ async def setup(bot):
     @bot.tree.command(name="stats", description="Get DonutSMP stats for a player")
     @app_commands.describe(playername="The player name to lookup")
     async def stats(interaction: discord.Interaction, playername: str):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         url = f"https://api.donutsmp.net/v1/stats/{playername}"
         headers = {

@@ -11,7 +11,7 @@ async def setup(bot):
     @bot.tree.command(name="lookup", description="Get player info by player name")
     @app_commands.describe(playername="The player name to lookup")
     async def lookup(interaction: discord.Interaction, playername: str):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         url = f"https://api.donutsmp.net/v1/lookup/{playername}"
         headers = {

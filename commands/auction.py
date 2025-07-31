@@ -23,7 +23,7 @@ async def setup(bot):
         app_commands.Choice(name="Last Listed", value="last_listed"),
     ])
     async def auction(interaction: discord.Interaction, item: str, amount: int, sort: app_commands.Choice[str]):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
         url = "https://api.donutsmp.net/v1/auction/list/1"
         headers = {

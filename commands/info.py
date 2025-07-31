@@ -10,7 +10,7 @@ async def setup(bot):
     startTime = bot.startTime
     @bot.tree.command(name="info", description="View bot info")
     async def info(interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
         embed = discord.Embed(title="🤖 Bot Info", color=0x89CFF0)
         embed.add_field(name="Uptime", value=formatPlaytime(int(time.time() - startTime)), inline=True)
         embed.add_field(name="Total Servers", value=str(len(bot.guilds)), inline=True)
