@@ -14,6 +14,7 @@ async def setup(bot):
                 "/track - Track a player and get notified when they come online\n"
                 "/untrack - Stop tracking a player\n"
                 "/info - View bot info\n"
+                "/viewPriceHistory - Get price history graph for a specific item\n"
             ),
             color=0x89CFF0
         )

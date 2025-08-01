@@ -4,24 +4,32 @@ import asyncio
 from functions import getOnlineStatus
 import random
 
-trackedPlayers = {}
-userTracking = {}  
+trackedPlayers = {}  # playername -> set of userIDs
+userTracking = {}    # userID -> playername
 ownerID = 1264016430022529124
 donutApiKey = None
 
 async def setup(bot):
     global donutApiKey
     donutApiKey = random.choice(bot.donutApiKey)
-    async def trackerLoop(playerName, userID):
+
+    async def trackerLoop(playerName):
         await asyncio.sleep(3)
-        while playerName in trackedPlayers:
+        while playerName in trackedPlayers and trackedPlayers[playerName]:
             try:
                 status = await getOnlineStatus(donutApiKey, playerName)
                 if status:
-                    user = await bot.fetch_user(userID)
-                    await user.send(f"🔔 `{playerName}` is now online!")
-                    trackedPlayers.pop(playerName, None)
-                    userTracking.pop(userID, None)
+                    for userID in list(trackedPlayers[playerName]):
+                        user = await bot.fetch_user(userID)
+                        try:
+                            await user.send(f"🔔 `{playerName}` is now online!")
+                        except:
+                            pass 
+                        trackedPlayers[playerName].remove(userID)
+                        userTracking.pop(userID, None)
+
+                    if not trackedPlayers[playerName]:
+                        trackedPlayers.pop(playerName)
                     break
             except Exception as e:
                 print(f"[TRACKER ERROR] {playerName}: {e}")
@@ -37,21 +45,20 @@ async def setup(bot):
             await interaction.followup.send("🚫 That player is already online!")
             return
 
-        if playername in trackedPlayers:
-            await interaction.followup.send("🚫 This player is already being tracked by someone.")
-            return
-
         if userID != ownerID and userID in userTracking:
             await interaction.followup.send("🚫 You’re already tracking a player!")
             return
 
-        if userID != ownerID and len(trackedPlayers) >= 100:
-            await interaction.followup.send("🚫 The track list is full. Max 100 players.")
+        if userID != ownerID and sum(len(users) for users in trackedPlayers.values()) >= 100:
+            await interaction.followup.send("🚫 The track list is full. Max 100 tracked users.")
             return
 
-        trackedPlayers[playername] = userID
+        if playername not in trackedPlayers:
+            trackedPlayers[playername] = set()
+            asyncio.create_task(trackerLoop(playername))
+
+        trackedPlayers[playername].add(userID)
         userTracking[userID] = playername
-        asyncio.create_task(trackerLoop(playername, userID))
         await interaction.followup.send(f"✅ Now tracking `{playername}`. You'll be DM'd when they're online.")
 
     @bot.tree.command(name="untrack", description="Stop tracking a player.")
@@ -60,15 +67,14 @@ async def setup(bot):
         userID = interaction.user.id
         await interaction.response.defer()
 
-        if playername not in trackedPlayers:
-            await interaction.followup.send("⚠️ This player is not being tracked.")
+        if playername not in trackedPlayers or userID not in trackedPlayers[playername]:
+            await interaction.followup.send("⚠️ You're not tracking this player.")
             return
 
-        trackerID = trackedPlayers[playername]
-        if userID != trackerID and userID != ownerID:
-            await interaction.followup.send("🚫 You did not start this player’s tracker!")
-            return
+        trackedPlayers[playername].remove(userID)
+        userTracking.pop(userID, None)
 
-        trackedPlayers.pop(playername, None)
-        userTracking.pop(trackerID, None)
+        if not trackedPlayers[playername]:
+            trackedPlayers.pop(playername)
+
         await interaction.followup.send(f"✅ Stopped tracking `{playername}`.")

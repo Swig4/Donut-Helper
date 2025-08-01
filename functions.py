@@ -1,5 +1,5 @@
 import aiohttp
-
+import json
 def formatPrice(v):
     try:
         v = float(v)
@@ -45,3 +45,34 @@ async def getOnlineStatus(key, playername):
         return False
     else:
         return True
+    
+async def getCheapestPrice(key, item):
+    url = "https://api.donutsmp.net/v1/auction/list/1"
+    headers = {
+        "Authorization": key,
+        "accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "search": item,
+        "sort": "lowest_price"
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers, json=payload) as resp:
+            if resp.status == 500:
+                return
+            elif resp.status != 200:
+                return
+            text = await resp.text()
+            try:
+                data = json.loads(text)
+            except json.JSONDecodeError:
+                return
+            results = data.get("result", [])
+
+    match = None
+    for auctionItem in results:
+        if auctionItem["item"].get("count", 0) >= 1:
+            match = auctionItem
+            break
+    return match["price"] if match else None
