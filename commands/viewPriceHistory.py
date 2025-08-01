@@ -2,11 +2,11 @@ import discord
 from discord import app_commands
 import plotly.graph_objects as go
 import io
-from functions import getCheapestPrice
+from functions import getCheapestPrice, formatPrice
 import random
 import asyncio
 import time
-
+import datetime
 donutApiKey = None
 priceHistory = {
     "elytra": [],
@@ -39,9 +39,9 @@ async def setup(bot):
                     print(f"Error updating price for {item}: {e}")
             await asyncio.sleep(20)
 
-    bot.loop.create_task(priceUpdater())
+    asyncio.create_task(priceUpdater())
 
-    @bot.tree.command(name="viewPriceHistory", description="Get price history graph for a specific item.")
+    @bot.tree.command(name="viewpricehistory", description="Get price history graph for a specific item.")
     @app_commands.describe(item="Select an item to graph")
     @app_commands.choices(item=[
         app_commands.Choice(name="Elytra", value="elytra"),
@@ -49,40 +49,46 @@ async def setup(bot):
         app_commands.Choice(name="Mace", value="mace"),
     ])
     async def priceGraph(interaction: discord.Interaction, item: app_commands.Choice[str]):
-        await interaction.response.defer()
+        try:
+            await interaction.response.defer()
 
-        history = priceHistory.get(item.value, [])
-        if not history:
-            await interaction.followup.send("No price data available yet, please wait a bit.")
-            return
+            history = priceHistory.get(item.value, [])
+            if not history:
+                await interaction.followup.send("No price data available yet, please wait a bit.")
+                return
 
-        timestamps, prices = zip(*history)
+            _, rawPrice = zip(*history)
+            formattedPrices = [formatPrice(p) for p in rawPrice]
+            indices = list(range(1, len(rawPrice) + 1))
 
-        import datetime
-        timesStr = [datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") for ts in timestamps]
+            fig = go.Figure(data=[go.Scatter(
+                x=indices,
+                y=rawPrice,
+                mode='lines+markers',
+                line=dict(color=allowedItems[item.value]),
+                marker=dict(size=6),
+                text=formattedPrices,
+                hovertemplate="Price: %{text}<extra></extra>"
+            )])
 
-        fig = go.Figure(data=[go.Scatter(
-            x=timesStr,
-            y=prices,
-            mode='lines+markers',
-            line=dict(color=allowedItems[item.value]),
-            marker=dict(size=6)
-        )])
 
-        fig.update_layout(
-            title=f"Price History for {item.name}",
-            xaxis_title="Time (HH:MM:SS)",
-            yaxis_title="Price (coins)",
-            template="plotly_dark",
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=14),
-            xaxis=dict(tickangle=45)
-        )
+            fig.update_layout(
+                title=f"Price History for {item.name}",
+                xaxis_title="Item Number",
+                yaxis_title="Price (coins)",
+                template="plotly_dark",
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(size=14),
+                xaxis=dict(tickangle=45)
+            )
 
-        imgBytes = fig.to_image(format="png", width=700, height=450)
-        file = discord.File(io.BytesIO(imgBytes), filename="pricehistory.png")
-        embed = discord.Embed(title=f"Price History for {item.name}")
-        embed.set_image(url="attachment://pricehistory.png")
+            imgBytes = fig.to_image(format="png", width=700, height=450)
+            file = discord.File(io.BytesIO(imgBytes), filename="pricehistory.png")
+            embed = discord.Embed(title=f"Price History for {item.name}")
+            embed.set_image(url="attachment://pricehistory.png")
+        except Exception as e:
+            await interaction.followup.send(f"Error generating graph: {e}")
+            print(f"Error in priceGraph command: {e}")
 
         await interaction.followup.send(embed=embed, file=file)

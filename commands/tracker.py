@@ -4,8 +4,8 @@ import asyncio
 from functions import getOnlineStatus
 import random
 
-trackedPlayers = {}  # playername -> set of userIDs
-userTracking = {}    # userID -> playername
+trackedPlayers = {}
+userTracking = {}
 ownerID = 1264016430022529124
 donutApiKey = None
 
