@@ -15,6 +15,7 @@ async def setup(bot):
                 "/untrack - Stop tracking a player\n"
                 "/info - View bot info\n"
                 "/viewPriceHistory - Get price history graph for a specific item\n"
+                "/viewBestFlips - View the top 5 most profitable craftable items.\n"
             ),
             color=0x89CFF0
         )

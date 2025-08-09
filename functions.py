@@ -72,7 +72,13 @@ async def getCheapestPrice(key, item):
 
     match = None
     for auctionItem in results:
-        if auctionItem["item"].get("count", 0) >= 1:
+        if not auctionItem:
+            continue
+    
+        itemData = auctionItem.get("item", {})
+        itemCount = itemData.get("count", 0)
+        itemId = itemData.get("id", "").replace("minecraft:", "").replace("_", " ").strip().lower()
+        if itemCount >= 1 and itemId == item.strip().lower():
             match = auctionItem
             break
     return match["price"] if match else None

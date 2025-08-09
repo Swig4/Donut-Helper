@@ -25,7 +25,7 @@ async def setup(bot):
     async def auction(interaction: discord.Interaction, item: str, amount: int, sort: app_commands.Choice[str]):
         await interaction.response.defer()
 
-        url = "https://api.donutsmp.net/v1/auction/list/1"
+        url = "https://api.donutsmp.net/v1/auction/list/2"
         headers = {
             "Authorization": donutApiKey,
             "accept": "application/json",
@@ -39,7 +39,7 @@ async def setup(bot):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, json=payload) as resp:
                 if resp.status == 500:
-                    errorEmbed = discord.Embed(title="No Valid Items", description="There is no valid item that matches your query. Did you spell it right?", color=0xFF0000)
+                    errorEmbed = discord.Embed(title="No Valid Items", description="There is no valid item that matches your query. Did you spell it right? code 500", color=0xFF0000)
                     await interaction.edit_original_response(embed=errorEmbed)
                     return
                 elif resp.status != 200:
@@ -56,10 +56,26 @@ async def setup(bot):
 
         results = data.get("result", [])
         match = None
+
         for auctionItem in results:
-            if auctionItem["item"].get("count", 0) >= amount:
+            if not auctionItem:
+                continue
+        
+            itemData = auctionItem.get("item", {})
+            itemCount = itemData.get("count", 0)
+            itemId = itemData.get("id", "").replace("minecraft:", "").replace("_", " ").strip().lower()
+            print(f"[DEBUG] count: {itemCount}, itemId: '{itemId}', search_item: '{item.strip().lower()}'")
+            if itemCount >= amount and itemId == item.strip().lower():
                 match = auctionItem
                 break
+        if not match:
+            errorEmbed = discord.Embed(
+                title="No Valid Items",
+                description="There is no valid item that matches your query. Did you spell it right?",
+                color=0xFF0000
+            )
+            await interaction.edit_original_response(embed=errorEmbed)
+            return
 
         sellerName = match["seller"]["name"]
         itemPrice = match["price"]
