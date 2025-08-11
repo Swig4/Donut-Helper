@@ -3,7 +3,6 @@ from discord import app_commands
 import json
 import os
 
-swigID = 1264016430022529124
 whitelistFile = "whitelist.json"
 
 if not os.path.exists(whitelistFile):
@@ -21,7 +20,7 @@ def loadWhitelist():
 async def setup(bot):
     @bot.tree.command(name="whitelist", description="Add a user to the whitelist.")
     async def whitelist(interaction: discord.Interaction, user: discord.User):
-        if interaction.user.id != swigID:
+        if interaction.user.id != bot.swigID:
             await interaction.response.send_message("❌ You are not allowed to use this command.", ephemeral=True)
             return
         wl = loadWhitelist()
@@ -30,11 +29,11 @@ async def setup(bot):
             saveWhitelist(wl)
             await interaction.response.send_message(f"✅ `{user}` has been added to the whitelist.")
         else:
-            await interaction.response.send_message(f"{user} is already whitelisted.")
+            await interaction.response.send_message(f"`{user}` is already whitelisted.")
 
     @bot.tree.command(name="unwhitelist", description="Remove a user from the whitelist.")
     async def unwhitelist(interaction: discord.Interaction, user: discord.User):
-        if interaction.user.id != swigID:
+        if interaction.user.id != bot.swigID:
             await interaction.response.send_message("❌ You are not allowed to use this command.", ephemeral=True)
             return
         wl = loadWhitelist()
@@ -43,11 +42,11 @@ async def setup(bot):
             saveWhitelist(wl)
             await interaction.response.send_message(f"✅ `{user}` has been removed from the whitelist.")
         else:
-            await interaction.response.send_message(f"{user} is not in the whitelist.")
+            await interaction.response.send_message(f"`{user}` is not in the whitelist.")
 
     @bot.tree.command(name="iswhitelisted", description="Check if a user is whitelisted.")
     async def iswhitelisted(interaction: discord.Interaction, user: discord.User):
-        if interaction.user.id != swigID:
+        if interaction.user.id != bot.swigID:
             await interaction.response.send_message("❌ You are not allowed to use this command.", ephemeral=True)
             return
         wl = loadWhitelist()

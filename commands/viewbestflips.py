@@ -4,6 +4,7 @@ import json
 import os
 from functions import getCheapestPrice, formatPrice
 import random
+from rulesPrompt import promptRules
 
 WhitelistFile = "whitelist.json"
 
@@ -223,6 +224,13 @@ flips = [
             {"name": "Sugar Cane", "amount": 1}
         ]
     },
+    {
+        "output": {"name": "Empty Map", "amount": 1},
+        "ingredients": [
+            {"name": "Paper", "amount": 8},
+            {"name": "Compass", "amount": 1}
+        ]
+    },
 ]
 
 
@@ -235,9 +243,7 @@ async def setup(bot):
     @bot.tree.command(name="viewbestflips", description="View the top 5 most profitable craftable items.")
     async def viewBestFlips(interaction: discord.Interaction):
         try:
-            whitelist = loadWhitelist()
-            if interaction.user.id != 1264016430022529124 and interaction.user.id not in whitelist:
-                await interaction.response.send_message("❌ You must be whitelisted by Swig to use this command.", ephemeral=True)
+            if not await promptRules(interaction):
                 return
             
             await interaction.response.defer(ephemeral=True)

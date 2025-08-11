@@ -39,7 +39,7 @@ async def setup(bot):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, json=payload) as resp:
                 if resp.status == 500:
-                    errorEmbed = discord.Embed(title="No Valid Items", description="There is no valid item that matches your query. Did you spell it right? code 500", color=0xFF0000)
+                    errorEmbed = discord.Embed(title="No Valid Items", description="There is no valid item that matches your query. Did you spell it right? (Error Code: 500)", color=0xFF0000)
                     await interaction.edit_original_response(embed=errorEmbed)
                     return
                 elif resp.status != 200:
@@ -64,7 +64,6 @@ async def setup(bot):
             itemData = auctionItem.get("item", {})
             itemCount = itemData.get("count", 0)
             itemId = itemData.get("id", "").replace("minecraft:", "").replace("_", " ").strip().lower()
-            print(f"[DEBUG] count: {itemCount}, itemId: '{itemId}', search_item: '{item.strip().lower()}'")
             if itemCount >= amount and itemId == item.strip().lower():
                 match = auctionItem
                 break

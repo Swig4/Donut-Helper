@@ -14,10 +14,13 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="12345678901", intents=intents)
 bot.donutApiKey = [key.strip() for key in donutApiKey]
 bot.startTime = startTime 
+bot.devGuild = discord.Object(id=1152992529051025429)
+bot.swigID = 1264016430022529124
 
 @bot.event
 async def on_ready():
     await bot.tree.sync()
+    await bot.tree.sync(guild=bot.devGuild)
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="/help | Made By swig5"))
     print(f"Logged in as {bot.user}")
 

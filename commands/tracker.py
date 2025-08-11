@@ -6,7 +6,6 @@ import random
 
 trackedPlayers = {}
 userTracking = {}
-ownerID = 1264016430022529124
 donutApiKey = None
 
 async def setup(bot):
@@ -45,11 +44,11 @@ async def setup(bot):
             await interaction.followup.send("🚫 That player is already online!")
             return
 
-        if userID != ownerID and userID in userTracking:
+        if userID != bot.swigID and userID in userTracking:
             await interaction.followup.send("🚫 You’re already tracking a player!")
             return
 
-        if userID != ownerID and sum(len(users) for users in trackedPlayers.values()) >= 100:
+        if userID != bot.swigID and sum(len(users) for users in trackedPlayers.values()) >= 100:
             await interaction.followup.send("🚫 The track list is full. Max 100 tracked users.")
             return
 
